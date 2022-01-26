@@ -1,5 +1,5 @@
 {
-  "name": "Aluracord - Matrix (peas)",
+  "name": "Aluracord",
   "theme": {
     "colors": {
       "primary": {
@@ -27,6 +27,9 @@
         "800": "#181F25",
         "900": "#101418",
         "999": "#080A0C"
+      },
+      "custom": {
+        "100": "#5865f2"
       }
     }
   },

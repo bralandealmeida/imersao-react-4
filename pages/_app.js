@@ -1,3 +1,5 @@
+import 'react-loading-skeleton/dist/skeleton.css'
+
 const GlobalStyle = () => {
   return (
       <style global jsx>{`

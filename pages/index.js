@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Box, Button, Text, TextField, Image } from '@skynexui/components';
-// import { useRouter } from 'next/router';
+import { useRouter } from 'next/router';
 import appConfig from '../config.json';
+import Skeleton from 'react-loading-skeleton'
+import DiscordBox from '../components/Box';
 
 function Title({ tag: Tag = 'h1', children }) {
   return (
@@ -19,20 +21,11 @@ function Title({ tag: Tag = 'h1', children }) {
 }
 
 export default function HomePage () {
-  // const username = 'teste';
-  const [username, setUsername] = useState('bralandealmeida');
-  // const roteamento = useRouter();
+  const [username, setUsername] = useState('');
+  const router = useRouter();
 
   return (
-    <>
-      <Box
-        styleSheet={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          backgroundColor: appConfig.theme.colors.primary[500],
-          backgroundImage: 'url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)',
-          backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundBlendMode: 'multiply',
-        }}
-      >
+      <DiscordBox>
         <Box
           styleSheet={{
             display: 'flex',
@@ -51,11 +44,9 @@ export default function HomePage () {
           {/* Formulário */}
           <Box
             as="form"
-            onSubmit={function (infosDoEvento) {
-              infosDoEvento.preventDefault();
-              console.log('Alguém submeteu o form');
-              // roteamento.push('/chat');
-              // window.location.href = '/chat';
+            onSubmit={(event) => {
+              event.preventDefault();
+              router.push('/chat');
             }}
             styleSheet={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -67,18 +58,6 @@ export default function HomePage () {
               {appConfig.name}
             </Text>
 
-            {/* <input
-                            type="text"
-                            value={username}
-                            onChange={function (event) {
-                                console.log('usuario digitou', event.target.value);
-                                // Onde ta o valor?
-                                const valor = event.target.value;
-                                // Trocar o valor da variavel
-                                // através do React e avise quem precisa
-                                setUsername(valor);
-                            }}
-                        /> */}
             <TextField
               value={username}
               onChange={(event) => setUsername(event.target.value)}
@@ -106,7 +85,6 @@ export default function HomePage () {
           </Box>
           {/* Formulário */}
 
-
           {/* Photo Area */}
           <Box
             styleSheet={{
@@ -123,28 +101,40 @@ export default function HomePage () {
               minHeight: '240px',
             }}
           >
-            <Image
-              styleSheet={{
-                borderRadius: '50%',
-                marginBottom: '16px',
-              }}
-              src={`https://github.com/${username}.png`}
-            />
-            <Text
-              variant="body4"
-              styleSheet={{
-                color: appConfig.theme.colors.neutrals[200],
-                backgroundColor: appConfig.theme.colors.neutrals[900],
-                padding: '3px 10px',
-                borderRadius: '1000px'
-              }}
-            >
-              {username}
-            </Text>
+            {username.length <= 2 ? (
+              <Box
+                styleSheet={{
+                  display: 'block',
+                  width: '100%',
+                }}
+              >
+                <Skeleton circle height={166} />
+              </Box>
+            ) : (
+              <Image
+                styleSheet={{
+                  borderRadius: '50%',
+                  marginBottom: '16px',
+                }}
+                src={`https://github.com/${username}.png`}
+              />
+            )}
+            {username.length > 2 && (
+              <Text
+                variant="body4"
+                styleSheet={{
+                  color: appConfig.theme.colors.neutrals[200],
+                  backgroundColor: appConfig.theme.colors.neutrals[900],
+                  padding: '3px 10px',
+                  borderRadius: '1000px'
+                }}
+              >
+                {username}
+              </Text>
+            )}
           </Box>
           {/* Photo Area */}
         </Box>
-      </Box>
-    </>
+      </DiscordBox>
   );
 }
