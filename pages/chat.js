@@ -5,9 +5,13 @@ import DiscordBox from '../components/Box';
 import { useRouter } from 'next/router';
 import { supabase } from '../utils/supabaseClient';
 import Skeleton from 'react-loading-skeleton';
-import * as HoverCard from '@radix-ui/react-hover-card';
+import { ButtonSendSticker } from '../components/ButtonSendSticker';
+// import * as HoverCard from '@radix-ui/react-hover-card';
 
 export default function ChatPage() {
+    const router = useRouter();
+    const loggedUser = router.query.username;
+
     const [message, setMessage] = useState('');
     const [messageList, setMessageList] = useState([]);
 
@@ -17,7 +21,7 @@ export default function ChatPage() {
       }
 
       const message = {
-        from: 'vanessametonini',
+        from: loggedUser,
         text: newMessage,
       };
 
@@ -29,10 +33,10 @@ export default function ChatPage() {
           ]);
       });
 
-      setMessageList([
-        message,
-        ...messageList,
-      ]);
+    //   setMessageList([
+    //     message,
+    //     ...messageList,
+    //   ]);
 
       setMessage('');
     }
@@ -43,10 +47,24 @@ export default function ChatPage() {
         setMessageList(newMessageList);
     }
 
+    function listenRealTimeMessages(addNewMessage){
+        return supabase.from('messages').on('INSERT', (response) => {
+            addNewMessage(response.new);
+        }).subscribe();
+    }
+
+    useEffect(() => {
+        if(!loggedUser){
+            router.push('/');
+        }
+    } ,[loggedUser]);
+
     useEffect(() => {
         try{
             supabase.from('messages').select('*').order('created_at', { ascending: false })
             .then(({ data }) => setMessageList(data));
+            
+            listenRealTimeMessages((newMessages) => setMessageList([ newMessages, ...messageList ]));
         }catch(error){
             console.log(error);
         }
@@ -111,6 +129,9 @@ export default function ChatPage() {
                                 marginRight: '12px',
                                 color: appConfig.theme.colors.neutrals[200],
                             }}
+                        />
+                        <ButtonSendSticker
+                            onStickerClick={(sticker) => handleNewMessage(`:sticker:${sticker}`)}
                         />
                         <Button
                             variant='tertiary'
@@ -227,7 +248,11 @@ const MessageList = ({ messages, handleRemoveMessage }) => {
                               onClick={() => handleRemoveMessage(message.id)}
                             />
                         </Box>
-                        {message.text}
+                        {message.text.startsWith(':sticker:') ? (
+                            <Image src={message.text.replace(':sticker:', '')} />
+                        ) : (
+                            message.text
+                        )}
                     </Text>
                 );
             })}
