@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import appConfig from '../config.json';
 import DiscordBox from '../components/Box';
 import { useRouter } from 'next/router';
+import { supabase } from '../utils/supabaseClient';
+import Skeleton from 'react-loading-skeleton';
+import * as HoverCard from '@radix-ui/react-hover-card';
 
 export default function ChatPage() {
     const [message, setMessage] = useState('');
@@ -14,10 +17,17 @@ export default function ChatPage() {
       }
 
       const message = {
-        id: messageList.length + 1,
         from: 'vanessametonini',
         text: newMessage,
       };
+
+      supabase.from('messages').insert([ message ])
+      .then(({data }) => {
+        setMessageList([
+            data[0],
+            ...messageList,
+          ]);
+      });
 
       setMessageList([
         message,
@@ -27,10 +37,20 @@ export default function ChatPage() {
       setMessage('');
     }
 
-    function handleRemoveMessage(id) {
-      const newMessageList = messageList.filter(((message) => message.id !== id));
-      setMessageList(newMessageList);
+    async function handleRemoveMessage(id) {
+        await supabase.from('messages').delete().match({ id: id });
+        const newMessageList = messageList.filter(((message) => message.id !== id));
+        setMessageList(newMessageList);
     }
+
+    useEffect(() => {
+        try{
+            supabase.from('messages').select('*').order('created_at', { ascending: false })
+            .then(({ data }) => setMessageList(data));
+        }catch(error){
+            console.log(error);
+        }
+    }, []);
 
     return (
         <DiscordBox>
@@ -148,7 +168,13 @@ const MessageList = ({ messages, handleRemoveMessage }) => {
                 marginBottom: '16px',
             }}
         >
-            {messages.map((message) => {
+            {messages.length === 0 ? (
+                <>
+                    <li><Skeleton height={32} /></li>
+                    <li><Skeleton height={32} /></li>
+                    <li><Skeleton height={32} /></li>
+                </>
+            ) : messages.map((message) => {
                 return (
                     <Text
                         key={message.id}
@@ -175,8 +201,9 @@ const MessageList = ({ messages, handleRemoveMessage }) => {
                                     display: 'inline-block',
                                     marginRight: '8px',
                                 }}
-                                src={`https://github.com/vanessametonini.png`}
+                                src={`https://github.com/${message.from}.png`}
                             />
+                            
                             <Text tag="strong">
                                 {message.from}
                             </Text>
